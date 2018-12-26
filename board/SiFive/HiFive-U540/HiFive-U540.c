@@ -2,6 +2,7 @@
 /*
  * Copyright (C) 2018 Microsemi Corporation.
  * Padmarao Begari, Microsemi Corporation <padmarao.begari@microsemi.com>
+ * Copyright (C) 2018 Joey Hewitt <joey@joeyhewitt.com>
  */
 
 #include <asm/mach-types.h>
@@ -10,6 +11,10 @@
 #include <netdev.h>
 #endif
 #include <linux/io.h>
+#include <dm/uclass.h>
+#include <dm/device.h>
+#include <misc.h>
+#include <inttypes.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -119,6 +124,24 @@ int dram_init_banksize(void)
 
 	return 0;
 }
+
+/* This define is a value used for error/unknown serial. If we really care about distinguishing errors and 0 is valid, we'll need a different one. */
+#define ERROR_READING_SERIAL_NUMBER        0
+
+#ifdef CONFIG_MISC_INIT_R
+static u32 setup_serialnum(void);
+static void setup_macaddr(u32 serialnum);
+
+int misc_init_r(void)
+{
+	if (!env_get("serial#")) {
+		u32 serialnum = setup_serialnum();
+		setup_macaddr(serialnum);
+	}
+	return 0;
+}
+#endif
+
 #if defined(CONFIG_MACB) && !defined(CONFIG_DM_ETH)
 int board_eth_init(bd_t *bd)
 {
@@ -142,3 +165,55 @@ ulong board_flash_get_legacy(ulong base, int banknum, flash_info_t *info)
 
 	return (void *)CONFIG_SYS_FDT_BASE;
 }*/
+
+#if CONFIG_IS_ENABLED(HIFIVE_OTP)
+static u32 otp_read_serialnum(struct udevice *dev)
+{
+	u32 serial[2] = {0};
+	int ret;
+	for (int i = 0xfe * 4; i > 0; i -= 8) {
+		ret = misc_read(dev, i, serial, sizeof(serial));
+		if (ret) {
+			printf("%s: error reading serial from OTP\n", __func__);
+			break;
+		}
+		if (serial[0] == ~serial[1])
+			return serial[0];
+	}
+	return ERROR_READING_SERIAL_NUMBER;
+}
+#endif
+
+static u32 setup_serialnum(void)
+{
+	u32 serial = ERROR_READING_SERIAL_NUMBER;
+	char serial_str[6];
+
+#if CONFIG_IS_ENABLED(HIFIVE_OTP)
+	struct udevice *dev;
+	int ret;
+
+	// init OTP
+	ret = uclass_get_device_by_driver(UCLASS_MISC, DM_GET_DRIVER(hifive_otp), &dev);
+	if (ret) {
+		debug("%s: could not find otp device\n", __func__);
+		return serial;
+	}
+
+	// read serial from OTP and set env var
+	serial = otp_read_serialnum(dev);
+	snprintf(serial_str, sizeof(serial_str), "%05"PRIu32, serial);
+	env_set("serial#", serial_str);
+#endif
+
+	return serial;
+}
+
+static void setup_macaddr(u32 serialnum) {
+	// OR the serial into the MAC -- see SiFive FSBL
+	unsigned char mac[6] = { 0x70, 0xb3, 0xd5, 0x92, 0xf0, 0x00 };
+	mac[5] |= (serialnum >>  0) & 0xff;
+	mac[4] |= (serialnum >>  8) & 0xff;
+	mac[3] |= (serialnum >> 16) & 0xff;
+	eth_env_set_enetaddr("ethaddr", mac);
+}

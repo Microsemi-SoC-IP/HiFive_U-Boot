@@ -114,7 +114,6 @@
 #define CONFIG_MACB_SEARCH_PHY
 #define CONFIG_ARP_TIMEOUT		200UL
 #define CONFIG_IP_DEFRAG
-#define CONFIG_ETHADDR              70:b3:d5:92:f0:00 /* sifive MAC address */
 #define CONFIG_CMD_MII
 #define CONFIG_RESET_PHY_R
 
@@ -123,8 +122,7 @@
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
 
-#define	CONFIG_EXTRA_ENV_SETTINGS	"ethaddr=" __stringify(CONFIG_ETHADDR) "\0" \
-									"serverip=10.60.132.52\0" \
+#define	CONFIG_EXTRA_ENV_SETTINGS	"serverip=10.60.132.52\0" \
 									"ip_dyn=yes\0"
 
 #define CONFIG_SYS_MAX_FLASH_SECT	0

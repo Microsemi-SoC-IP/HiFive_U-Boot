@@ -41,6 +41,12 @@ config ROCKCHIP_EFUSE
 	  extended (by porting the read function from the Linux kernel sources)
 	  to support other recent Rockchip devices.
 
+config HIFIVE_OTP
+	bool "HiFive OTP driver"
+	depends on MISC
+	help
+	  Enable support for reading the HiFive U54 OTP storage.
+
 config CMD_CROS_EC
 	bool "Enable crosec command"
 	depends on CROS_EC
