@@ -16,11 +16,15 @@ config TARGET_AX25_AE350
 	
 config TARGET_HIFIVE_U540
     bool "Support HiFive-U540"
+
+config TARGET_MICROCHIP_LC_MPFS
+    bool "Support lc-mpfs"
     
 endchoice
 
 source "board/AndesTech/ax25-ae350/Kconfig"
 source "board/SiFive/HiFive-U540/Kconfig"
+source "board/microchip/lc-mpfs/Kconfig"
 
 choice
 	prompt "CPU selection"

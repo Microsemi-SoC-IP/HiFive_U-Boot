@@ -1,0 +1,6 @@
+lc-mpfs BOARD
+M:	Padmarao Begari <Padmarao.Begari@microsemi.com>
+S:	Maintained
+F:	board/microchip/lc-mpfs/
+F:	include/configs/mchp-lc-mpfs.h
+F:	configs/HiFive-U540_defconfig

@@ -1,0 +1,24 @@
+if TARGET_MICROCHIP_LC_MPFS
+
+config SYS_CPU
+	default "HiFive-no-otp"
+
+config SYS_BOARD
+	default "lc-mpfs"
+
+config SYS_VENDOR
+	default "microchip"
+
+config SYS_SOC
+	default "lc-mpfs"
+
+config SYS_CONFIG_NAME
+	default "mchp-lc-mpfs"
+
+config ENV_SIZE
+	default 0x2000 if ENV_IS_IN_SPI_FLASH
+
+config ENV_OFFSET
+	default 0x140000 if ENV_IS_IN_SPI_FLASH
+
+endif
